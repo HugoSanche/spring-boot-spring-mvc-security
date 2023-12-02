@@ -15,20 +15,20 @@ public class DemoSecurityConfig {
         UserDetails hugo= User.builder()
                 .username("hugo")
                 .password("{noop}test123")
-                .roles("Employee")
+                .roles("EMPLOYEE")
                 .build();
 
         UserDetails karina= User.builder()
                 .username("karina")
                 .password("{noop}test123")
-                .roles("Employee","MANAGER")
+                .roles("EMPLOYEE","MANAGER")
                 .build();
 
 
         UserDetails veronica= User.builder()
                 .username("veronica")
                 .password("{noop}test123")
-                .roles("Employee","MANAGER","ADMIN")
+                .roles("EMPLOYEE","MANAGER","ADMIN")
                 .build();
 
         return new InMemoryUserDetailsManager(hugo,karina,veronica);
@@ -38,6 +38,9 @@ public class DemoSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
         http.authorizeHttpRequests(configurer->
                 configurer
+                        .requestMatchers("/").hasRole("EMPLOYEE")
+                        .requestMatchers("/leaders/**").hasRole("MANAGER")
+                        .requestMatchers("/systems/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
 
         )
@@ -48,7 +51,12 @@ public class DemoSecurityConfig {
                                 .permitAll()
                 )
                 .logout(logout->logout.permitAll()
+
+                )
+                .exceptionHandling(configurer->
+                        configurer.accessDeniedPage("/access-denied")
                         );
+
         return http.build();
     }
 
